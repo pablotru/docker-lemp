@@ -1,0 +1,42 @@
+version: '3.6'
+
+services:
+  php:
+    build:
+      context: ./php
+      dockerfile: ${PHP_VERSION}.Dockerfile
+    container_name: php
+    restart: always
+    volumes:
+      - ./wordpress:/var/www/html
+    working_dir: /var/www/html
+    depends_on:
+      - mariadb
+    links:
+      - mariadb
+
+  nginx:
+    image: nginx:${NGINX_VERSION}
+    container_name: nginx
+    restart: always
+    volumes:
+      - ./nginx/config:/etc/nginx/conf.d
+      - ./nginx/logs:/var/log/nginx
+      - ./wordpress:/var/www/html
+    ports:
+      - 80:80
+      - 443:443
+    depends_on:
+      - php
+
+  mariadb:
+    image: mariadb:${MARIADB_VERSION}
+    container_name: mariadb
+    volumes:
+      - ./mariadb:/var/lib/mariadb
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${MARIADB_DATABASE}
+      MARIADB_USER: ${MARIADB_USER}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD}
